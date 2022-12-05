@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:typed_data';
 
 import 'package:collection/collection.dart';
 import 'package:flutter/services.dart';
@@ -188,17 +187,18 @@ class Contact {
     this.familyName,
     this.company,
     this.jobTitle,
-    this.emails,
-    this.phones,
-    this.postalAddresses,
+    this.emails = const [],
+    this.phones = const [],
+    this.postalAddresses = const [],
     this.avatar,
     this.birthday,
     this.androidAccountType,
     this.androidAccountTypeRaw,
     this.androidAccountName,
+    this.identifier,
   });
 
-  String? identifier,
+  final String? identifier,
       displayName,
       givenName,
       middleName,
@@ -207,13 +207,13 @@ class Contact {
       familyName,
       company,
       jobTitle;
-  String? androidAccountTypeRaw, androidAccountName;
-  AndroidAccountType? androidAccountType;
-  List<Item>? emails = [];
-  List<Item>? phones = [];
-  List<PostalAddress>? postalAddresses = [];
+  final String? androidAccountTypeRaw, androidAccountName;
+  final AndroidAccountType? androidAccountType;
+  final List<Item> emails;
+  final List<Item> phones;
+  final List<PostalAddress> postalAddresses;
   Uint8List? avatar;
-  DateTime? birthday;
+  final DateTime? birthday;
 
   String initials() {
     return ((this.givenName?.isNotEmpty == true ? this.givenName![0] : "") +
@@ -221,43 +221,44 @@ class Contact {
         .toUpperCase();
   }
 
-  Contact.fromMap(Map m) {
-    identifier = m["identifier"];
-    displayName = m["displayName"];
-    givenName = m["givenName"];
-    middleName = m["middleName"];
-    familyName = m["familyName"];
-    prefix = m["prefix"];
-    suffix = m["suffix"];
-    company = m["company"];
-    jobTitle = m["jobTitle"];
-    androidAccountTypeRaw = m["androidAccountType"];
-    androidAccountType = accountTypeFromString(androidAccountTypeRaw);
-    androidAccountName = m["androidAccountName"];
-    emails = (m["emails"] as List?)?.map((m) => Item.fromMap(m)).toList();
-    phones = (m["phones"] as List?)?.map((m) => Item.fromMap(m)).toList();
-    postalAddresses = (m["postalAddresses"] as List?)
-        ?.map((m) => PostalAddress.fromMap(m))
-        .toList();
-    avatar = m["avatar"];
-    try {
-      birthday = m["birthday"] != null ? DateTime.parse(m["birthday"]) : null;
-    } catch (e) {
-      birthday = null;
-    }
+  factory Contact.fromMap(Map m) {
+    return Contact(
+      identifier: m["identifier"],
+      displayName: m["displayName"],
+      givenName: m["givenName"],
+      middleName: m["middleName"],
+      familyName: m["familyName"],
+      prefix: m["prefix"],
+      suffix: m["suffix"],
+      company: m["company"],
+      jobTitle: m["jobTitle"],
+      androidAccountTypeRaw: m["androidAccountType"],
+      androidAccountType: accountTypeFromString(m["androidAccountType"]),
+      androidAccountName: m["androidAccountName"],
+      emails:
+          (m["emails"] as List?)?.map((m) => Item.fromMap(m)).toList() ?? [],
+      phones:
+          (m["phones"] as List?)?.map((m) => Item.fromMap(m)).toList() ?? [],
+      postalAddresses: (m["postalAddresses"] as List?)
+              ?.map((m) => PostalAddress.fromMap(m))
+              .toList() ??
+          [],
+      avatar: m["avatar"],
+      birthday: m["birthday"] != null ? DateTime.tryParse(m["birthday"]) : null,
+    );
   }
 
   static Map _toMap(Contact contact) {
     var emails = [];
-    for (Item email in contact.emails ?? []) {
+    for (Item email in contact.emails) {
       emails.add(Item._toMap(email));
     }
     var phones = [];
-    for (Item phone in contact.phones ?? []) {
+    for (Item phone in contact.phones) {
       phones.add(Item._toMap(phone));
     }
     var postalAddresses = [];
-    for (PostalAddress address in contact.postalAddresses ?? []) {
+    for (PostalAddress address in contact.postalAddresses) {
       postalAddresses.add(PostalAddress._toMap(address));
     }
 
@@ -300,27 +301,13 @@ class Contact {
         jobTitle: this.jobTitle ?? other.jobTitle,
         androidAccountType: this.androidAccountType ?? other.androidAccountType,
         androidAccountName: this.androidAccountName ?? other.androidAccountName,
-        emails: this.emails == null
-            ? other.emails
-            : this
-                .emails!
-                .toSet()
-                .union(other.emails?.toSet() ?? Set())
-                .toList(),
-        phones: this.phones == null
-            ? other.phones
-            : this
-                .phones!
-                .toSet()
-                .union(other.phones?.toSet() ?? Set())
-                .toList(),
-        postalAddresses: this.postalAddresses == null
-            ? other.postalAddresses
-            : this
-                .postalAddresses!
-                .toSet()
-                .union(other.postalAddresses?.toSet() ?? Set())
-                .toList(),
+        emails: this.emails.toSet().union(other.emails.toSet()).toList(),
+        phones: this.phones.toSet().union(other.phones.toSet()).toList(),
+        postalAddresses: this
+            .postalAddresses
+            .toSet()
+            .union(other.postalAddresses.toSet())
+            .toList(),
         avatar: this.avatar ?? other.avatar,
         birthday: this.birthday ?? other.birthday,
       );
@@ -366,7 +353,7 @@ class Contact {
     ].where((s) => s != null));
   }
 
-  AndroidAccountType? accountTypeFromString(String? androidAccountType) {
+  static AndroidAccountType? accountTypeFromString(String? androidAccountType) {
     if (androidAccountType == null) {
       return null;
     }
@@ -392,15 +379,17 @@ class PostalAddress {
       this.postcode,
       this.region,
       this.country});
-  String? label, street, city, postcode, region, country;
+  final String? label, street, city, postcode, region, country;
 
-  PostalAddress.fromMap(Map m) {
-    label = m["label"];
-    street = m["street"];
-    city = m["city"];
-    postcode = m["postcode"];
-    region = m["region"];
-    country = m["country"];
+  factory PostalAddress.fromMap(Map m) {
+    return PostalAddress(
+      label: m["label"],
+      street: m["street"],
+      city: m["city"],
+      postcode: m["postcode"],
+      region: m["region"],
+      country: m["country"],
+    );
   }
 
   @override

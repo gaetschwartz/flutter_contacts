@@ -1,5 +1,3 @@
-import 'dart:typed_data';
-
 import 'package:contacts_service/contacts_service.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -45,8 +43,8 @@ void main() {
     expect(contacts.length, 2);
     expect(contacts, everyElement(isInstanceOf<Contact>()));
     expect(contacts[0].givenName, 'givenName1');
-    expect(contacts[1].postalAddresses![0].label, 'label');
-    expect(contacts[1].emails![0].label, 'label');
+    expect(contacts[1].postalAddresses[0].label, 'label');
+    expect(contacts[1].emails[0].label, 'label');
     expect(contacts[1].birthday, DateTime(1994, 2, 1));
   });
 
